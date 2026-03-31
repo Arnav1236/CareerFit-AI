@@ -1,281 +1,172 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import os
-from dotenv import load_dotenv
-import requests
+from sqlalchemy.orm import Session
+from typing import List, Optional
 import json
-from pdf_parser import extract_text_from_pdf, clean_text
 
-# Load environment variables
-load_dotenv()
+from database import engine, get_db
+from models import Base, Company, Role, Skill, InterviewQuestion
+from schemas import CompanyOut, RoleOut, SkillOut, QuestionOut, AnalysisResult
+from pdf_parser import extract_text_from_pdf, get_text_preview
+from ai_analyzer import analyze_resume
 
-# Configure Gemini API
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY not found in .env file!")
+# Create all tables on startup
+Base.metadata.create_all(bind=engine)
 
-# Initialize FastAPI app
 app = FastAPI(
-    title="CareerFit AI - Resume Analyzer",
-    description="AI-powered resume skill gap analyzer",
-    version="1.0.0"
+    title="Resume Skill Gap Analyzer API",
+    description="Backend API for AI-powered resume analysis, skill gap detection, and interview prep.",
+    version="1.0.0",
 )
 
-# Add CORS middleware (allows frontend to connect)
+# Allow requests from the Vite dev server
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # In production, specify your frontend URL
-    # allow_origins=["*"],  # In production, specify your frontend URL
+    allow_origins=["http://localhost:5174", "http://localhost:8000"],
     allow_credentials=True,
-    allow_methods=["*"],    
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Pydantic models for request validation
-class ResumeAnalysisRequest(BaseModel):
-    resume_text: str
-    job_description: str = "Entry Level Software Engineer at a Service-Based Company (TCS/Infosys/Wipro)"
-    target_companies: str = ""
 
-# Root endpoint
-@app.get("/")
-def read_root():
-    return {
-        "message": "CareerFit AI Backend is Running!",
-        "status": "active",
-        "docs": "Visit /docs for interactive API documentation"
-    }
+# ── Health Check ───────────────────────────────────────────────────────────────
 
-# Health check endpoint
-@app.get("/health")
-def health_check():
-    return {"status": "healthy", "gemini_configured": bool(GEMINI_API_KEY)}
+@app.get("/", tags=["Health"])
+def root():
+    return {"status": "ok", "message": "Resume Analyzer API is running 🚀"}
 
-# Function to call Gemini API via REST
-def call_gemini_api(system_instruction: str, user_prompt: str):
-    """Call Gemini API using direct HTTP request - THIS WORKED FOR YOU"""
-    
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
-    
-    headers = {
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": system_instruction},
-                    {"text": user_prompt}
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.7,
-            "topK": 40,
-            "topP": 0.95,
-            "maxOutputTokens": 4096,
-        }
-    }
-    
-    response = requests.post(url, headers=headers, json=payload, timeout=30)
-    
-    if response.status_code != 200:
-        raise Exception(f"Gemini API Error: {response.status_code} - {response.text}")
-    
-    result = response.json()
-    
-    # Extract text from response
-    if "candidates" in result and len(result["candidates"]) > 0:
-        # Check if response was truncated
-        candidate = result["candidates"][0]
-        
-        # Get finish reason
-        finish_reason = candidate.get("finishReason", "")
-        
-        if finish_reason == "MAX_TOKENS":
-            raise Exception("Response was truncated. Please try with a shorter resume or simpler job description.")
-        
-        text = candidate["content"]["parts"][0]["text"]
-        return text
-    else:
-        raise Exception("No response from Gemini API")
 
-# Main analysis endpoint
-@app.post("/analyze-resume")
-async def analyze_resume(request: ResumeAnalysisRequest):
-    try:
-        # Create the system prompt
-        system_instruction = """You are an expert career counselor and technical interviewer. Analyze the resume vs job requirements.
+# ── Companies ──────────────────────────────────────────────────────────────────
 
-Respond ONLY in valid JSON format. You MUST use exactly these keys and data types (no markdown, no extra text):
-{
-    "matchScore": 85,
-    "matchedSkills": ["skill1", "skill2"],
-    "missingSkills": ["skill3", "skill4"],
-    "chartData": [
-        {"subject": "Frontend/UI", "A": 80, "fullMark": 100},
-        {"subject": "Backend", "A": 40, "fullMark": 100},
-        {"subject": "Architecture", "A": 50, "fullMark": 100},
-        {"subject": "DevOps", "A": 20, "fullMark": 100},
-        {"subject": "Problem Solving", "A": 90, "fullMark": 100}
-    ],
-    "roadmap": [
-        {
-            "week": "Week 1",
-            "focus": "Topic to learn",
-            "resource": "Name of course/platform",
-            "link": "https://www.google.com/search?q=...",
-            "type": "Course or Documentation"
-        }
-    ],
-    "interviewQuestions": [
-        "Technical interview question 1 based on their gaps?",
-        "Scenario based question 2?"
-    ]
-}
+@app.get("/api/companies", response_model=List[CompanyOut], tags=["Companies"])
+def get_companies(db: Session = Depends(get_db)):
+    """Return all companies stored in the database."""
+    return db.query(Company).order_by(Company.name).all()
 
-Ensure the chartData subjects adapt to the specific tech stack. Keep roadmap to 3-4 weeks. Be concise."""
 
-        # Create the user prompt
-        user_prompt = f"""
-RESUME TEXT:
-{request.resume_text}
+@app.get("/api/companies/{company_id}", response_model=CompanyOut, tags=["Companies"])
+def get_company(company_id: int, db: Session = Depends(get_db)):
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    return company
 
-JOB REQUIREMENTS:
-{request.job_description}
 
-TARGET COMPANIES (if specified):
-{request.target_companies if request.target_companies else "Not specified - analyze for general fit"}
+# ── Roles ──────────────────────────────────────────────────────────────────────
 
-Analyze this resume and provide the JSON output as specified."""
+@app.get("/api/roles", response_model=List[RoleOut], tags=["Roles"])
+def get_roles(db: Session = Depends(get_db)):
+    """Return all available roles."""
+    return db.query(Role).order_by(Role.title).all()
 
-        # Call Gemini API (using the working REST method)
-        result_text = call_gemini_api(system_instruction, user_prompt)
-        
-        # Remove markdown code blocks if present
-        result_text = result_text.strip()
-        if result_text.startswith("```json"):
-            result_text = result_text[7:]
-        if result_text.startswith("```"):
-            result_text = result_text[3:]
-        if result_text.endswith("```"):
-            result_text = result_text[:-3]
-        result_text = result_text.strip()
-        
-        # Parse JSON
-        try:
-            analysis_result = json.loads(result_text)
-        except json.JSONDecodeError as e:
-            # If JSON parsing fails, return the raw text for debugging
-            return {
-                "error": "AI returned invalid JSON",
-                "raw_response": result_text,
-                "parse_error": str(e)
-            }
-        
-        return {
-            "success": True,
-            "analysis": analysis_result
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
-# Test endpoint with hardcoded example
-@app.get("/test-analysis")
-async def test_analysis():
-    """Quick test endpoint with sample data"""
-    sample_resume = """
-    John Doe
-    Software Developer
-    
-    Skills: Python, HTML, CSS, JavaScript, MySQL
-    
-    Experience:
-    - Built a personal portfolio website using HTML/CSS/JS
-    - Created a library management system using Python and MySQL
-    - Worked on college project for attendance tracking
-    
-    Education:
-    B.Tech in Computer Science (2024)
-    """
-    
-    sample_jd = """
-    Job Title: Software Engineer
-    Company: TCS
-    
-    Required Skills:
-    - Strong programming skills in Java or Python
-    - Knowledge of Data Structures and Algorithms
-    - Experience with SQL databases
-    - Understanding of Software Development Life Cycle (SDLC)
-    - Good communication and teamwork skills
-    
-    Preferred:
-    - Knowledge of React or Angular
-    - Experience with Git version control
-    """
-    
-    request = ResumeAnalysisRequest(
-        resume_text=sample_resume,
-        job_description=sample_jd,
-        target_companies="TCS"
-    )
-    
-    return await analyze_resume(request)
+# ── Skills ─────────────────────────────────────────────────────────────────────
 
-# NEW: PDF Upload endpoint
-@app.post("/analyze-resume-pdf")
-async def analyze_resume_pdf(
-    resume_pdf: UploadFile = File(...),
-    job_description: str = Form("Entry Level Software Engineer at a Service-Based Company"),
-    target_companies: str = Form("")
+@app.get("/api/skills", response_model=List[SkillOut], tags=["Skills"])
+def get_skills(
+    role: Optional[str] = Query(None, description="Filter by role title"),
+    company: Optional[str] = Query(None, description="Filter by company name"),
+    db: Session = Depends(get_db),
+):
+    """Return skills, optionally filtered by role or company."""
+    query = db.query(Skill)
+    if role:
+        role_obj = db.query(Role).filter(Role.title.ilike(f"%{role}%")).first()
+        if role_obj:
+            query = query.filter(Skill.role_id == role_obj.id)
+    if company:
+        company_obj = db.query(Company).filter(Company.name.ilike(f"%{company}%")).first()
+        if company_obj:
+            query = query.filter(Skill.company_id == company_obj.id)
+    return query.all()
+
+
+# ── Interview Questions ────────────────────────────────────────────────────────
+
+@app.get("/api/questions", response_model=List[QuestionOut], tags=["Interview Questions"])
+def get_questions(
+    role: Optional[str] = Query(None),
+    company: Optional[str] = Query(None),
+    category: Optional[str] = Query(None),
+    difficulty: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+):
+    """Return interview questions, filtered by role, company, category, or difficulty."""
+    query = db.query(InterviewQuestion)
+
+    if role:
+        role_obj = db.query(Role).filter(Role.title.ilike(f"%{role}%")).first()
+        if role_obj:
+            query = query.filter(
+                (InterviewQuestion.role_id == role_obj.id) | (InterviewQuestion.role_id == None)
+            )
+
+    if company:
+        company_obj = db.query(Company).filter(Company.name.ilike(f"%{company}%")).first()
+        if company_obj:
+            query = query.filter(
+                (InterviewQuestion.company_id == company_obj.id) | (InterviewQuestion.company_id == None)
+            )
+
+    if category:
+        query = query.filter(InterviewQuestion.category.ilike(f"%{category}%"))
+
+    if difficulty:
+        query = query.filter(InterviewQuestion.difficulty.ilike(difficulty))
+
+    return query.all()
+
+
+# ── Resume Analysis ────────────────────────────────────────────────────────────
+
+@app.post("/api/analyze", response_model=AnalysisResult, response_model_by_alias=True, tags=["Analysis"])
+async def analyze(
+    file: UploadFile = File(..., description="Resume PDF file"),
+    role: str = Form(..., description="Target role title"),
+    companies: str = Form("", description="Comma-separated list of target company names"),
+    db: Session = Depends(get_db),
 ):
     """
-    Analyze resume from PDF upload
-    
-    Args:
-        resume_pdf: PDF file of the resume
-        job_description: Job requirements (optional)
-        target_companies: Target companies (optional)
+    Main endpoint — accepts a resume PDF, target role, and companies.
+    Returns a full AI-powered skill gap analysis.
     """
-    
     # Validate file type
-    if not resume_pdf.filename.endswith('.pdf'):
-        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
-    
-    try:
-        # Extract text from PDF
-        resume_text = extract_text_from_pdf(resume_pdf)
-        resume_text = clean_text(resume_text)
-        
-        # Check if text was extracted
-        if len(resume_text) < 50:
-            raise HTTPException(
-                status_code=400, 
-                detail="Could not extract sufficient text from PDF. Please ensure the PDF is not scanned/image-based."
-            )
-        
-        # Create request object
-        request = ResumeAnalysisRequest(
-            resume_text=resume_text,
-            job_description=job_description,
-            target_companies=target_companies
-        )
-        
-        # Analyze using existing function
-        result = await analyze_resume(request)
-        
-        # Add extracted text to response (for debugging)
-        result["extracted_text_preview"] = resume_text[:500] + "..."
-        
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"PDF processing failed: {str(e)}")
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
 
-# Run with: uvicorn main:app --reload
+    # Read and size-check the file
+    file_bytes = await file.read()
+    if len(file_bytes) > 10 * 1024 * 1024:  # 10MB limit
+        raise HTTPException(status_code=400, detail="File too large. Max 10MB.")
+
+    # Extract text from PDF
+    try:
+        resume_text = extract_text_from_pdf(file_bytes)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=f"Could not parse PDF: {str(e)}")
+
+    if len(resume_text.strip()) < 100:
+        raise HTTPException(
+            status_code=422,
+            detail="Resume text is too short or empty. Please upload a text-based PDF (not a scanned image)."
+        )
+
+    # Parse companies list
+    company_list = [c.strip() for c in companies.split(",") if c.strip()] if companies else []
+
+    # Get text preview for response
+    preview = get_text_preview(resume_text, max_chars=500)
+
+    # Run AI analysis
+    try:
+        result = await analyze_resume(
+            db=db,
+            resume_text=resume_text,
+            role_title=role,
+            companies=company_list,
+            resume_preview=preview,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI analysis failed: {str(e)}")
+
+    return result
