@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,800;1,400&display=swap');
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #FAF5EE;
+    color: #2C1A0E;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #FAF5EE; }
+  ::-webkit-scrollbar-thumb { background: #FDBA74; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #F97316; }
+}
+
+@layer components {
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-orange-500 hover:bg-orange-600 active:bg-orange-700
+           text-white font-semibold
+           px-6 py-3 rounded-xl
+           border-none cursor-pointer
+           shadow-warm-sm hover:shadow-warm-md
+           transition-all duration-300
+           hover:-translate-y-0.5 active:translate-y-0
+           no-underline text-sm;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-white hover:bg-cream-100
+           text-orange-600 font-semibold
+           px-6 py-3 rounded-xl
+           border-2 border-orange-300 hover:border-orange-500
+           cursor-pointer
+           transition-all duration-300
+           hover:-translate-y-0.5
+           no-underline text-sm;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2
+           text-warm-brown hover:text-orange-600 font-medium
+           px-4 py-2 rounded-lg
+           bg-transparent hover:bg-orange-50
+           border-none cursor-pointer
+           transition-all duration-200
+           no-underline text-sm;
+  }
+
+  /* ── Cards ── */
+  .card {
+    @apply bg-white/90 backdrop-blur-sm rounded-2xl
+           shadow-card border border-cream-200
+           transition-all duration-300
+           hover:shadow-card-hover hover:-translate-y-1;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md
+           border border-white/60 rounded-2xl shadow-warm-md;
+  }
+
+  .section-card {
+    @apply bg-white rounded-2xl shadow-card border border-cream-200 p-6;
+  }
+
+  /* ── Form ── */
+  .input-field {
+    @apply w-full bg-cream-50 border-2 border-cream-300 rounded-xl
+           px-4 py-3 text-warm-dark placeholder-warm-mid/60
+           font-medium text-sm
+           outline-none
+           focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100
+           transition-all duration-200;
+  }
+
+  /* ── Typography ── */
+  .section-title {
+    @apply font-display text-3xl md:text-4xl font-bold text-warm-dark leading-tight;
+  }
+
+  .section-subtitle {
+    @apply text-warm-brown text-base md:text-lg max-w-2xl mx-auto leading-relaxed;
+  }
+
+  /* ── Badges ── */
+  .badge-matched {
+    @apply inline-flex items-center gap-1.5
+           px-3 py-1.5 rounded-full
+           bg-green-100 text-green-700 border border-green-200
+           text-sm font-semibold;
+  }
+
+  .badge-unmatched {
+    @apply inline-flex items-center gap-1.5
+           px-3 py-1.5 rounded-full
+           bg-red-100 text-red-600 border border-red-200
+           text-sm font-semibold;
+  }
+
+  /* ── Social button ── */
+  .social-btn {
+    @apply flex items-center justify-center gap-3
+           w-full py-3 px-4 rounded-xl
+           border-2 border-cream-300 bg-white
+           hover:bg-cream-50 hover:border-orange-300
+           transition-all duration-200
+           text-warm-dark font-medium text-sm cursor-pointer
+           hover:shadow-warm-sm hover:-translate-y-0.5;
+  }
+
+  /* ── Section label ── */
+  .section-label {
+    @apply inline-flex items-center gap-2
+           px-4 py-1.5 rounded-full
+           text-sm font-semibold mb-4;
+  }
+}
+
+@layer utilities {
+  /* Gradients */
+  .bg-warm-gradient {
+    background: linear-gradient(135deg, #FAF5EE 0%, #FFF0DC 50%, #FAF5EE 100%);
+  }
+  .bg-orange-gradient {
+    background: linear-gradient(135deg, #F97316 0%, #FB923C 60%, #FDBA74 100%);
+  }
+  .bg-hero-gradient {
+    background: linear-gradient(160deg, #FFF7ED 0%, #FFEDD5 40%, #FAF5EE 100%);
+  }
+
+  /* Text gradient */
+  .text-gradient {
+    background: linear-gradient(135deg, #EA580C, #F97316, #FB923C);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Dot pattern */
+  .dot-pattern {
+    background-image: radial-gradient(circle, #FDBA74 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
+
+/* Keyframe animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes floatParticle {
+  0%, 100% { transform: translateY(0px); opacity: 0.5; }
+  50%       { transform: translateY(-20px); opacity: 0.9; }
+}
