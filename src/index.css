@@ -1,8 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Sora:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&display=swap');
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,800;1,400&display=swap');
 
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
@@ -10,11 +11,13 @@
   html { scroll-behavior: smooth; }
 
   body {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     background-color: #FAF5EE;
     color: #2C1A0E;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+    text-rendering: optimizeLegibility;
   }
 
   ::-webkit-scrollbar { width: 6px; }
@@ -88,11 +91,11 @@
 
   /* ── Typography ── */
   .section-title {
-    @apply font-display text-3xl md:text-4xl font-bold text-warm-dark leading-tight;
+    @apply font-display text-3xl md:text-4xl font-bold text-warm-dark leading-tight tracking-tight;
   }
 
   .section-subtitle {
-    @apply text-warm-brown text-base md:text-lg max-w-2xl mx-auto leading-relaxed;
+    @apply text-warm-brown text-base md:text-lg max-w-2xl mx-auto leading-relaxed tracking-wide;
   }
 
   /* ── Badges ── */
@@ -100,14 +103,14 @@
     @apply inline-flex items-center gap-1.5
            px-3 py-1.5 rounded-full
            bg-green-100 text-green-700 border border-green-200
-           text-sm font-semibold;
+           text-xs font-semibold tracking-wide font-label;
   }
 
   .badge-unmatched {
     @apply inline-flex items-center gap-1.5
            px-3 py-1.5 rounded-full
            bg-red-100 text-red-600 border border-red-200
-           text-sm font-semibold;
+           text-xs font-semibold tracking-wide font-label;
   }
 
   /* ── Social button ── */
@@ -125,7 +128,8 @@
   .section-label {
     @apply inline-flex items-center gap-2
            px-4 py-1.5 rounded-full
-           text-sm font-semibold mb-4;
+           text-xs font-semibold tracking-widest uppercase mb-4
+           font-label;
   }
 }
 
@@ -170,4 +174,79 @@
 @keyframes floatParticle {
   0%, 100% { transform: translateY(0px); opacity: 0.5; }
   50%       { transform: translateY(-20px); opacity: 0.9; }
+}
+
+@media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+  
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .card, .bg-white {
+    box-shadow: none !important;
+    border: 1px solid #E5D5C5 !important;
+    overflow: visible !important;
+  }
+  
+  /* Prevent page breaks inside cards */
+  .card, .p-6, .p-8 {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Force headers to stay with content */
+  h1, h2, h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* Make sure the main content spans full width without excessive padding */
+  .max-w-7xl, .pt-28 {
+    padding-top: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Target framer-motion layers cautiously if needed, but aggressive div targeting breaks CircularScore styles */
+
+  /* min-h-screen forces 100vh which can cut off content in multi-page prints */
+  .min-h-screen {
+    min-height: auto !important;
+  }
+
+  /* Ensure grid displays nicely without cutting elements */
+  .grid {
+    display: block !important;
+  }
+  .grid > * {
+    margin-bottom: 24px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* CRITICAL: Fix for Chrome/WebKit SVG clipping bugs in flex containers during print */
+  svg {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  /* Force cards to block display so they don't flex-compress contents */
+  .card {
+    display: block !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    height: auto !important;
+    min-height: fit-content !important;
+  }
 }

@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, Boolean, DateTime
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from database import Base
 
 
@@ -65,3 +66,15 @@ class InterviewQuestion(Base):
 
     role = relationship("Role", back_populates="interview_questions")
     company = relationship("Company", back_populates="interview_questions")
+
+
+class AnalysisHistory(Base):
+    __tablename__ = "analysis_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_name = Column(String, default="Anonymous")
+    target_role = Column(String, nullable=False)
+    companies = Column(String, default="")          # comma-separated
+    score = Column(Integer, default=0)
+    result_json = Column(Text, nullable=False)      # full JSON payload
+    created_at = Column(DateTime, default=datetime.utcnow)

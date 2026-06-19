@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useReactToPrint } from 'react-to-print';
 import {
   CheckCircle2, XCircle, ArrowLeft, Download, RefreshCw,
   BookOpen, Briefcase, GraduationCap, ChevronDown, ChevronUp,
-  Star, ExternalLink, Sparkles, TrendingUp, AlertTriangle, Info
+  Star, ExternalLink, Sparkles, TrendingUp, AlertTriangle, Info, Clock
 } from 'lucide-react';
 
 import CircularScore from '../components/CircularScore';
 import Navbar from '../components/Navbar';
+import HistoryPanel from '../components/HistoryPanel';
+import Logo from '../components/Logo';
 
 
 
@@ -79,8 +82,24 @@ function SkillRow({ item, index }) {
 export default function Dashboard() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const result = state?.result;
-  const [uploadOpen, setUploadOpen] = useState(false);
+  
+  const [result, setResult] = useState(state?.result || null);
+  const [role, setRole] = useState(state?.role || '');
+  const [companies, setCompanies] = useState(state?.companies || []);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  // Print Setup
+  const printRef = useRef(null);
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `CareerFit_Analysis_${role}`,
+  });
+
+  const handleHistorySelect = (historyResult, historyRole, historyCompanies) => {
+    setResult(historyResult);
+    setRole(historyRole);
+    setCompanies(historyCompanies || []);
+  };
 
   // Guard: if no result, send back home
   if (!result) {
@@ -96,10 +115,23 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-warm-gradient">
-      <Navbar onUploadClick={() => navigate('/home')} />
+    <div className="min-h-screen print:min-h-fit print:overflow-visible bg-warm-gradient">
+      <div className="no-print">
+        <Navbar onUploadClick={() => navigate('/home')} />
+      </div>
 
-      <div className="pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div ref={printRef} className="pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        {/* Print-only header */}
+        <div className="hidden print:flex items-center justify-between border-b border-cream-200 pb-6 mb-8 mt-4">
+          <div className="flex items-center gap-2">
+            <Logo size={32} />
+            <span className="font-display text-2xl font-bold text-warm-dark tracking-tight">CareerFit</span>
+          </div>
+          <div className="text-right">
+            <h2 className="font-display font-bold text-lg text-warm-dark">AI Resume Analysis</h2>
+            <p className="text-sm text-warm-mid">{role && `Target: ${role}`}</p>
+          </div>
+        </div>
 
         {/* ── Page header ── */}
         <motion.div
@@ -120,22 +152,29 @@ export default function Dashboard() {
             <h1 className="font-display text-3xl md:text-4xl font-bold text-warm-dark">
               Your Analysis Dashboard
             </h1>
-            {state?.role && (
+            {role && (
               <p className="text-warm-brown mt-1">
-                Analyzed for: <span className="font-semibold text-orange-600">{state.role}</span>
-                {state.companies?.length > 0 && ` · ${state.companies.join(', ')}`}
+                Analyzed for: <span className="font-semibold text-orange-600">{role}</span>
+                {companies?.length > 0 && ` · ${companies.join(', ')}`}
               </p>
             )}
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 no-print">
+            <button
+              onClick={() => setHistoryOpen(true)}
+              className="btn-secondary text-sm flex items-center gap-2"
+            >
+              <Clock className="w-4 h-4" />
+              History
+            </button>
             <button
               onClick={() => navigate('/home')}
-              className="btn-secondary text-sm flex items-center gap-2"
+              className="btn-secondary text-sm flex items-center gap-2 hidden sm:flex"
             >
               <RefreshCw className="w-4 h-4" />
               Re-analyze
             </button>
-            <button className="btn-primary text-sm flex items-center gap-2">
+            <button onClick={() => handlePrint()} className="btn-primary text-sm flex items-center gap-2">
               <Download className="w-4 h-4" />
               Export PDF
             </button>
@@ -150,7 +189,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
-            className="card p-8 flex flex-col items-center justify-center"
+            className="card print:break-inside-avoid p-8 flex flex-col items-center justify-center"
           >
             <CircularScore score={result.score} size={220} />
           </motion.div>
@@ -160,7 +199,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="card p-6 lg:col-span-2"
+            className="card print:break-inside-avoid p-6 lg:col-span-2"
           >
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
@@ -194,7 +233,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="card p-6"
+            className="card print:break-inside-avoid p-6"
           >
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
@@ -226,7 +265,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="card p-6"
+            className="card print:break-inside-avoid p-6"
           >
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
@@ -262,7 +301,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="card p-6 mb-8"
+          className="card print:break-inside-avoid p-6 mb-8"
         >
           <div className="flex items-center gap-2 mb-6">
             <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
@@ -287,7 +326,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="card p-6"
+            className="card print:break-inside-avoid p-6"
           >
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
@@ -315,7 +354,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55 }}
-            className="card p-6"
+            className="card print:break-inside-avoid p-6"
           >
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
@@ -346,7 +385,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="card p-6"
+            className="card print:break-inside-avoid p-6"
           >
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -372,7 +411,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.65 }}
-            className="card p-6"
+            className="card print:break-inside-avoid p-6"
           >
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
@@ -398,7 +437,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="card p-8 text-center bg-orange-gradient"
+          className="card p-8 text-center bg-orange-gradient no-print"
         >
           <h2 className="font-display text-2xl font-bold text-white mb-3">
             Improve & Re-analyze
@@ -414,13 +453,19 @@ export default function Dashboard() {
               <RefreshCw className="w-4 h-4" />
               Upload New Resume
             </button>
-            <button className="flex items-center justify-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-bold rounded-xl transition-all duration-300 hover:-translate-y-0.5">
+            <button onClick={() => handlePrint()} className="flex items-center justify-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-bold rounded-xl transition-all duration-300 hover:-translate-y-0.5">
               <Download className="w-4 h-4" />
-              Download Report
+              Export PDF
             </button>
           </div>
         </motion.div>
       </div>
+
+      <HistoryPanel 
+        isOpen={historyOpen} 
+        onClose={() => setHistoryOpen(false)} 
+        onSelect={handleHistorySelect} 
+      />
     </div>
   );
 }

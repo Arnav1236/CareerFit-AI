@@ -31,13 +31,11 @@ export default function CircularScore({ score = 72, size = 220, animated = true 
   }, [score, animated]);
 
   return (
-    <motion.div
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="flex flex-col items-center gap-4"
-    >
-      <div className="relative" style={{ width: size, height: size }}>
+    <div className="flex flex-col items-center gap-4">
+      <div 
+        className="relative flex-shrink-0" 
+        style={{ width: size, height: size, minWidth: size, minHeight: size }}
+      >
         {/* Background glow */}
         <div
           className="absolute inset-0 rounded-full blur-2xl opacity-30"
@@ -45,7 +43,13 @@ export default function CircularScore({ score = 72, size = 220, animated = true 
         />
 
         {/* SVG ring */}
-        <svg width={size} height={size} className="drop-shadow-sm">
+        <svg 
+          width={size} 
+          height={size} 
+          viewBox={`0 0 ${size} ${size}`}
+          style={{ minWidth: size, minHeight: size }}
+          className="drop-shadow-sm flex-shrink-0"
+        >
           {/* Track */}
           <circle
             cx={size / 2}
@@ -66,9 +70,8 @@ export default function CircularScore({ score = 72, size = 220, animated = true 
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
             style={{
-              transform: 'rotate(-90deg)',
-              transformOrigin: '50% 50%',
               transition: 'stroke-dashoffset 0.1s ease',
             }}
           />
@@ -117,6 +120,6 @@ export default function CircularScore({ score = 72, size = 220, animated = true 
           </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }

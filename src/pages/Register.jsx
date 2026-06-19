@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User, FileText, ArrowRight, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle } from 'lucide-react';
+import Logo from '../components/Logo';
 
 function SocialButton({ icon, label, onClick }) {
   return (
@@ -61,11 +62,11 @@ export default function Register() {
           <div className="p-8 md:p-10 order-2 md:order-1">
             {/* Mobile logo */}
             <div className="flex items-center gap-2 mb-6 md:hidden">
-              <div className="w-9 h-9 rounded-xl bg-orange-gradient flex items-center justify-center shadow-warm-sm">
-                <FileText className="w-5 h-5 text-white" />
+              <div className="w-9 h-9 rounded-xl bg-orange-gradient flex items-center justify-center shadow-warm-sm overflow-hidden">
+                <Logo size={28} white />
               </div>
-              <span className="font-display font-bold text-xl text-warm-dark">
-                Skill<span className="text-gradient">Gap</span>
+              <span className="font-display font-bold text-xl text-warm-dark tracking-tight">
+                Career<span className="text-gradient">Fit</span>
               </span>
             </div>
 
@@ -221,10 +222,10 @@ export default function Register() {
             <div className="absolute bottom-0 right-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/3 translate-x-1/3" />
 
             <div className="flex items-center gap-2.5 relative z-10">
-              <div className="w-10 h-10 rounded-xl bg-white/90 flex items-center justify-center shadow-md">
-                <FileText className="w-5 h-5 text-orange-600" />
+              <div className="w-10 h-10 rounded-xl bg-white/90 flex items-center justify-center shadow-md overflow-hidden">
+                <Logo size={32} />
               </div>
-              <span className="font-display text-2xl font-bold text-white">SkillGap</span>
+              <span className="font-display text-2xl font-bold text-white tracking-tight">CareerFit</span>
             </div>
 
             <div className="relative z-10 space-y-5">

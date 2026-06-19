@@ -3,10 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import json
+from datetime import datetime
 
 from database import engine, get_db
-from models import Base, Company, Role, Skill, InterviewQuestion
-from schemas import CompanyOut, RoleOut, SkillOut, QuestionOut, AnalysisResult
+from models import Base, Company, Role, Skill, InterviewQuestion, AnalysisHistory
+from schemas import CompanyOut, RoleOut, SkillOut, QuestionOut, AnalysisResult, AnalysisHistoryOut
 from pdf_parser import extract_text_from_pdf, get_text_preview
 from ai_analyzer import analyze_resume
 
@@ -169,4 +170,39 @@ async def analyze(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI analysis failed: {str(e)}")
 
+    # Save to history
+    try:
+        result_dict = result.model_dump(by_alias=True)
+        history_entry = AnalysisHistory(
+            candidate_name=result_dict.get("resumeTextPreview", "")[:60] or "Anonymous",
+            target_role=role,
+            companies=", ".join(company_list),
+            score=result_dict.get("score", 0),
+            result_json=json.dumps(result_dict),
+            created_at=datetime.utcnow(),
+        )
+        db.add(history_entry)
+        db.commit()
+    except Exception as e:
+        print(f"⚠️  Could not save to history: {e}")
+
     return result
+
+
+# ── History ────────────────────────────────────────────────────────────────────
+
+@app.get("/api/history", response_model=List[AnalysisHistoryOut], tags=["History"])
+def get_history(db: Session = Depends(get_db)):
+    """Return all past analyses, newest first."""
+    return db.query(AnalysisHistory).order_by(AnalysisHistory.created_at.desc()).all()
+
+
+@app.delete("/api/history/{history_id}", tags=["History"])
+def delete_history(history_id: int, db: Session = Depends(get_db)):
+    """Delete a single history entry."""
+    entry = db.query(AnalysisHistory).filter(AnalysisHistory.id == history_id).first()
+    if not entry:
+        raise HTTPException(status_code=404, detail="History entry not found")
+    db.delete(entry)
+    db.commit()
+    return {"ok": True, "message": f"Deleted history entry {history_id}"}

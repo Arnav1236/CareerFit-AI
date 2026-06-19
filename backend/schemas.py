@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 from typing import List, Optional
+from datetime import datetime
 
 
 # ── Company Schemas ────────────────────────────────────────────────────────────
@@ -98,3 +99,16 @@ class AnalysisResult(BaseModel):
     role: str
     companies: List[str]
     resume_text_preview: str
+
+
+# ── History Schemas ────────────────────────────────────────────────────────────
+
+class AnalysisHistoryOut(BaseModel):
+    id: int
+    candidate_name: str
+    target_role: str
+    companies: str
+    score: int
+    result_json: str
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, Menu, X, ChevronRight, LogOut, User } from 'lucide-react';
+import { Menu, X, ChevronRight, LogOut, FileText } from 'lucide-react';
+import Logo from './Logo';
 
 const navLinks = [
   { label: 'Home', href: '/#home' },
@@ -55,11 +56,11 @@ export default function Navbar({ onUploadClick }) {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/home" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-orange-gradient flex items-center justify-center shadow-warm-sm group-hover:shadow-warm-md transition-all duration-200 group-hover:scale-105">
-              <FileText className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-orange-gradient flex items-center justify-center shadow-warm-sm group-hover:shadow-warm-md transition-all duration-200 group-hover:scale-105 overflow-hidden">
+              <Logo size={28} white />
             </div>
-            <span className="font-display font-bold text-xl text-warm-dark">
-              Skill<span className="text-gradient">Gap</span>
+            <span className="font-display font-bold text-xl text-warm-dark tracking-tighter">
+              Career<span className="text-gradient">Fit</span>
             </span>
           </Link>
 

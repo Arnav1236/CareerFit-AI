@@ -13,6 +13,7 @@ import HowItWorksModal from '../components/HowItWorksModal';
 import CompanyCard from '../components/CompanyCard';
 import CourseCard from '../components/CourseCard';
 import InterviewCard from '../components/InterviewCard';
+import Logo from '../components/Logo';
 import { companies } from '../data/companies';
 import { courses } from '../data/courses';
 import { interviewQuestions, tips } from '../data/interviewQuestions';
@@ -78,7 +79,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 border border-orange-200 text-orange-700 font-semibold text-sm mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 border border-orange-200 text-orange-700 font-semibold text-xs tracking-widest uppercase mb-6 font-label"
           >
             <Sparkles className="w-4 h-4" />
             AI-Powered Resume Analysis
@@ -212,7 +213,7 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-100 text-orange-700 text-sm font-semibold mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold mb-4 tracking-widest uppercase font-label">
               <Building2 className="w-4 h-4" />
               Top Companies
             </div>
@@ -250,7 +251,7 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold mb-4 tracking-widest uppercase font-label">
               <MessageSquare className="w-4 h-4" />
               Interview Prep
             </div>
@@ -277,7 +278,7 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold mb-4 tracking-widest uppercase font-label">
               <BookOpen className="w-4 h-4" />
               Top Courses
             </div>
@@ -304,7 +305,7 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 text-sm font-semibold mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold mb-4 tracking-widest uppercase font-label">
               <Star className="w-4 h-4" />
               Insider Tips
             </div>
@@ -365,14 +366,14 @@ export default function Home() {
 
       {/* ===== FOOTER ===== */}
       <footer className="py-10 px-4 bg-warm-dark text-center">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-orange-gradient flex items-center justify-center">
-            <TrendingUp className="w-4 h-4 text-white" />
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-xl bg-orange-gradient flex items-center justify-center overflow-hidden">
+            <Logo size={28} white />
           </div>
-          <span className="font-display text-lg font-bold text-white">SkillGap Analyzer</span>
+          <span className="font-display text-lg font-bold text-white tracking-tight">CareerFit AI</span>
         </div>
-        <p className="text-white/50 text-sm">
-          © 2025 SkillGap Analyzer. Helping job seekers land their dream jobs.
+        <p className="text-white/50 text-sm font-label tracking-wide">
+          © 2025 CareerFit AI. Helping job seekers land their dream jobs.
         </p>
       </footer>
 

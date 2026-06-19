@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Eye, EyeOff, Mail, Lock, FileText, ArrowRight, Sparkles
+  Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles
 } from 'lucide-react';
+import Logo from '../components/Logo';
 
 function SocialButton({ icon, label, onClick }) {
   return (
@@ -57,10 +58,10 @@ export default function Login() {
 
             {/* Logo */}
             <div className="flex items-center gap-2.5 relative z-10">
-              <div className="w-10 h-10 rounded-xl bg-white/90 flex items-center justify-center shadow-md">
-                <FileText className="w-5 h-5 text-orange-600" />
+              <div className="w-10 h-10 rounded-xl bg-white/90 flex items-center justify-center shadow-md overflow-hidden">
+                <Logo size={32} />
               </div>
-              <span className="font-display text-2xl font-bold text-white">SkillGap</span>
+              <span className="font-display text-2xl font-bold text-white tracking-tight">CareerFit</span>
             </div>
 
             {/* Features */}
@@ -98,11 +99,11 @@ export default function Login() {
           <div className="p-8 md:p-10">
             {/* Mobile logo */}
             <div className="flex items-center gap-2 mb-8 md:hidden">
-              <div className="w-9 h-9 rounded-xl bg-orange-gradient flex items-center justify-center shadow-warm-sm">
-                <FileText className="w-5 h-5 text-white" />
+              <div className="w-9 h-9 rounded-xl bg-orange-gradient flex items-center justify-center shadow-warm-sm overflow-hidden">
+                <Logo size={28} white />
               </div>
-              <span className="font-display font-bold text-xl text-warm-dark">
-                Skill<span className="text-gradient">Gap</span>
+              <span className="font-display font-bold text-xl text-warm-dark tracking-tight">
+                Career<span className="text-gradient">Fit</span>
               </span>
             </div>
 
