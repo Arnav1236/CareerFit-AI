@@ -13,7 +13,7 @@ const STEPS = [
 ];
 
 const STEP_DURATION_MS = 900; // time spent on each step
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'https://careerfit-ai-72vg.onrender.com';
 
 export default function LoadingScreen() {
   const navigate = useNavigate();
@@ -149,7 +149,7 @@ export default function LoadingScreen() {
           <p className="text-warm-brown mb-2 text-sm leading-relaxed">{error}</p>
           <p className="text-warm-mid text-xs mb-8">
             Make sure the backend server is running at{' '}
-            <code className="bg-cream-100 px-1 py-0.5 rounded">localhost:8000</code> and the PDF is a valid text-based resume.
+            <code className="bg-cream-100 px-1 py-0.5 rounded">https://careerfit-ai-72vg.onrender.com</code> and the PDF is a valid text-based resume.
           </p>
           <button
             onClick={() => navigate('/home')}

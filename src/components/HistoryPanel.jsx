@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, Target, Building2, Trash2, AlertCircle, Loader2 } from 'lucide-react';
 import CircularScore from './CircularScore';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'https://careerfit-ai-72vg.onrender.com';
 
 export default function HistoryPanel({ isOpen, onClose, onSelect }) {
   const [history, setHistory] = useState([]);

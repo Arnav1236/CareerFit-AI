@@ -21,7 +21,7 @@ const FALLBACK_COMPANIES = [
   "TCS", "Infosys", "Wipro", "Accenture",
 ];
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'https://careerfit-ai-72vg.onrender.com';
 
 export default function UploadModal({ onClose }) {
   const [file, setFile] = useState(null);
